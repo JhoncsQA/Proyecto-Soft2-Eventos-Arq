@@ -3,94 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Usuarios</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        form input, form button {
-            display: block;
-            margin: 10px 0;
-            padding: 10px;
-            width: 100%;
-            max-width: 400px;
-        }
-        .message {
-            margin-top: 20px;
-            color: green;
-        }
-    </style>
-</head>
-<body>
+    <title>Ejemplo Firestore</title>
+    <script type="module">
+        // Importar las funciones necesarias de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-    <h1>Registro de Usuarios</h1>
-    <form id="registrationForm">
-        <input type="email" id="email" placeholder="Correo electrónico" required />
-        <input type="password" id="password" placeholder="Contraseña" required />
-        <button type="submit">Registrarse</button>
-    </form>
-    <div class="message" id="message"></div>
-
-    <script>
-        // Configuración de Firebase
+        // Tu configuración de Firebase
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_DOMINIO",
-            projectId: "TU_ID_PROYECTO",
-            storageBucket: "TU_BUCKET",
-            messagingSenderId: "TU_MESSAGING_SENDER_ID",
-            appId: "TU_APP_ID"
+            apiKey: "AIzaSyB2WNuWG73fUUmKb-PeZ4qRR3uDwzlHjV4",
+            authDomain: "arqeventos-42937.firebaseapp.com",
+            projectId: "arqeventos-42937",
+            storageBucket: "arqeventos-42937.appspot.com",
+            messagingSenderId: "939735183928",
+            appId: "1:939735183928:web:a8515992f76c7ebcfb6ccd",
+            measurementId: "G-B7008F7PWL"
         };
 
         // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        // Función para registrar un nuevo usuario
-        async function registerUser(email, password) {
-            try {
-                // Crear el usuario en Firebase Authentication
-                const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-
-                // Guardar el usuario en Firestore
-                await db.collection("users").add({
-                    uid: user.uid,
-                    email: user.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                console.log(`Usuario registrado: ${user.email}`);
-                return true; // Indica que el registro fue exitoso
-            } catch (error) {
-                console.error("Error al registrar usuario:", error);
-                return false; // Indica que el registro falló
-            }
+        // Función para agregar un nuevo documento
+        async function agregarDocumentoNuevo() {
+            const newEventDoc = doc(db, "evento", "YgvA7iIvsJUJ0gpGPXGp");
+            await setDoc(newEventDoc, {
+                estado: true // Valor inicial
+            });
+            console.log("Documento creado con estado inicial true");
         }
 
-        // Manejar el envío del formulario
-        document.getElementById("registrationForm").addEventListener("submit", async function (e) {
-            e.preventDefault(); // Prevenir el comportamiento por defecto
+        // Llamar a esta función para crear el documento
+        agregarDocumentoNuevo();
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+        // Lógica para cambiar el estado
+        document.addEventListener("DOMContentLoaded", function () {
+            const eventDoc = doc(db, "evento", "YgvA7iIvsJUJ0gpGPXGp");
 
-            const success = await registerUser(email, password);
-            if (success) {
-                document.getElementById("message").innerText = "Usuario registrado con éxito. Se enviará un correo electrónico de confirmación.";
-            } else {
-                document.getElementById("message").innerText = "Error al registrar usuario.";
-            }
-
-            this.reset(); // Limpiar el formulario
+            document.getElementById("toggleState").addEventListener("click", async function () {
+                try {
+                    const docSnapshot = await getDoc(eventDoc);
+                    if (docSnapshot.exists()) {
+                        const currentState = docSnapshot.data().estado;
+                        await updateDoc(eventDoc, {
+                            estado: !currentState  // Cambiar el estado
+                        });
+                        console.log("Estado actualizado a:", !currentState);
+                    } else {
+                        console.error("El documento no existe.");
+                    }
+                } catch (error) {
+                    console.error("Error al actualizar el estado:", error);
+                }
+            });
         });
     </script>
+</head>
+<body>
+    <h1>Estado del Evento</h1>
+    <button id="toggleState">Cambiar Estado</button>
 </body>
 </html>
